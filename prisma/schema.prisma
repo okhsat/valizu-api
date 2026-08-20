@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum IdempotencyStatus {
+  COMPLETED
+}
+
+enum IdempotencyOperation {
+  COPY_TRIP
+}
+
+model User {
+  id        String   @id @default(uuid()) @db.Uuid
+  email     String   @unique @db.VarChar(320)
+  name      String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trips           Trip[]
+  items           Item[]
+  idempotencyKeys IdempotencyKey[]
+}
+
+model Trip {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @db.Uuid
+  name        String    @db.VarChar(150)
+  destination String?   @db.VarChar(200)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bags Bag[]
+
+  @@index([userId])
+}
+
+model Bag {
+  id        String   @id @default(uuid()) @db.Uuid
+  tripId    String   @db.Uuid
+  name      String   @db.VarChar(150)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  trip  Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items BagItem[]
+
+  @@index([tripId])
+}
+
+model Item {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @db.Uuid
+  name      String   @db.VarChar(150)
+  category  String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bagItems BagItem[]
+
+  @@index([userId])
+}
+
+model BagItem {
+  id        String   @id @default(uuid()) @db.Uuid
+  bagId     String   @db.Uuid
+  itemId    String   @db.Uuid
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  bag  Bag  @relation(fields: [bagId], references: [id], onDelete: Cascade)
+  item Item @relation(fields: [itemId], references: [id], onDelete: Restrict)
+
+  @@unique([bagId, itemId])
+  @@index([itemId])
+}
+
+model IdempotencyKey {
+  id           String               @id @default(uuid()) @db.Uuid
+  userId       String               @db.Uuid
+  key          String               @db.VarChar(255)
+  operation    IdempotencyOperation
+  status       IdempotencyStatus
+  resourceId   String?              @db.Uuid
+  responseBody Json?
+  createdAt    DateTime             @default(now())
+  completedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, operation, key])
+  @@index([userId, operation])
+}
