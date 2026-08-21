@@ -5,7 +5,7 @@
 
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -95,6 +95,7 @@ model IdempotencyKey {
   userId       String               @db.Uuid
   key          String               @db.VarChar(255)
   operation    IdempotencyOperation
+  requestHash  String               @db.Char(64)
   status       IdempotencyStatus
   resourceId   String?              @db.Uuid
   responseBody Json?

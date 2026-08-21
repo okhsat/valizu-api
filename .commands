@@ -256,5 +256,83 @@ server {
 EOF
 > docker compose up -d postgres
 > docker compose ps
+> docker ps -a --filter name=valizu-postgres
+> docker rm -f valizu-postgres
+> docker compose down
+> docker compose logs postgres
+> docker logs valizu-postgres
 > pnpm exec prisma migrate dev --name init
 > pnpm exec prisma generate
+> docker exec -it valizu-postgres \
+  psql -U valizu -d valizu -c '\dt'
+> docker exec -it valizu-postgres \
+  psql -U valizu -d valizu \
+  -c 'SELECT migration_name, finished_at FROM "_prisma_migrations";'
+> cat > .dockerignore <<'EOF'
+node_modules
+dist
+coverage
+
+.env
+.env.*
+!.env.example
+
+.git
+.github
+
+generated/prisma
+
+*.log
+.DS_Store
+EOF
+> mkdir -p src
+> cat > src/main.ts <<'EOF'
+import express from 'express';
+
+const app = express();
+
+app.use(express.json());
+
+app.get('/health', (_req, res) => {
+  res.json({
+    status: 'ok',
+  });
+});
+
+const port = Number(process.env.API_PORT ?? 3000);
+
+app.listen(port, () => {
+  console.log(`Valizu API listening on port ${port}`);
+});
+EOF
+> pnpm build
+> find dist -maxdepth 2 -type f -print
+> node dist/main.js
+> docker compose build api
+> docker compose up -d api
+> docker compose up -d --build api
+> docker compose ps
+> docker compose logs api
+> docker compose logs -f api
+> docker compose logs --tail=50 api
+> docker exec valizu-api ls -la /app/dist
+> docker compose up -d nginx
+> docker compose ps
+> docker compose logs nginx
+> docker compose exec nginx nginx -t
+> curl http://localhost:8081/health
+> pnpm add @prisma/adapter-pg pg
+> pnpm add -D @types/pg
+> rm -rf generated
+> rm -rf src/generated/prisma
+> pnpm prisma:generate
+> pnpm prisma migrate dev --name simplify_idempotency_status
+> pnpm prisma generate
+> pnpm build
+> pnpm prisma:migrate --name add_idempotency_request_hash
+> pnpm prisma generate
+> pnpm build
+> pnpm test
+> pnpm test -- --reporter=verbose
+> rm -f tests/trips/copy.trip.test.js
+> find tests -type f -maxdepth 5 -print

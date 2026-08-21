@@ -1,4 +1,4 @@
-FROM node:22-bookworm-slim AS base
+FROM node:24-bookworm-slim AS base
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
@@ -32,9 +32,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile --prod
 
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/generated ./generated
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+COPY --from=build /app/src/generated ./generated
 
 EXPOSE 3000
 
