@@ -3,11 +3,55 @@ import { getRouteParam } from '../../lib/route.params.js';
 import { requireUser, type AuthenticatedRequest } from '../../middleware/auth.js';
 import { addItemSchema } from './item.schemas.js';
 import {
+  listItems,
+  listBagItems,
   addItemToBag,
   removeItemFromBag,
 } from './item.service.js';
 
 export const itemRouter = Router();
+
+itemRouter.get(
+  '/items',
+  requireUser,
+  async (req, res, next) => {
+    try {
+      const items = await listItems(
+        (req as AuthenticatedRequest).userId,
+      );
+
+      res.json({
+        data: items,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+itemRouter.get(
+  '/bags/:bagId/items',
+  requireUser,
+  async (req, res, next) => {
+    try {
+      const bagId = getRouteParam(
+        req.params.bagId,
+        'bagId',
+      );
+
+      const items = await listBagItems(
+        (req as AuthenticatedRequest).userId,
+        bagId,
+      );
+
+      res.json({
+        data: items,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 itemRouter.post(
   '/bags/:bagId/items',

@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import swaggerUi from 'swagger-ui-express';
+import { userRouter } from './modules/users/user.routes.js';
 import { bagRouter } from './modules/bags/bag.routes.js';
 import { itemRouter } from './modules/items/item.routes.js';
 import { tripRouter } from './modules/trips/trip.routes.js';
@@ -30,9 +31,18 @@ app.use(
   swaggerUi.setup(openApiDocument),
 );
 
+app.use(userRouter);
 app.use(bagRouter);
 app.use(itemRouter);
 app.use(tripRouter);
+
+// Must be after all routes
+app.use((_req, res) => {
+  res.status(404).json({
+    error: 'NOT_FOUND',
+    message: 'Route not found',
+  });
+});
 
 app.use(errorHandler);
 

@@ -1,6 +1,51 @@
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../middleware/error.handler.js';
 
+export async function listItems(userId: string) {
+  return prisma.item.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+}
+
+export async function listBagItems(
+  userId: string,
+  bagId: string,
+) {
+  const bag = await prisma.bag.findFirst({
+    where: {
+      id: bagId,
+      trip: {
+        userId,
+      },
+    },
+  });
+
+  if (!bag) {
+    throw new AppError(
+      404,
+      'BAG_NOT_FOUND',
+      'Bag not found',
+    );
+  }
+
+  return prisma.bagItem.findMany({
+    where: {
+      bagId,
+    },
+    include: {
+      item: true,
+    },
+    orderBy: {
+      createdAt: 'asc',
+    },
+  });
+}
+
 export async function addItemToBag(
   userId: string,
   bagId: string,

@@ -6,6 +6,17 @@ import { copyTripResultSchema, CopyTripResult } from './trip.schemas.js';
 
 const COPY_TRIP_OPERATION = 'COPY_TRIP' as const;
 
+export async function listTrips(userId: string) {
+  return prisma.trip.findMany({
+    where: {
+      userId,
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+}
+
 function createRequestHash(sourceTripId: string): string {
   return createHash('sha256')
     .update(`${COPY_TRIP_OPERATION}:${sourceTripId}`)

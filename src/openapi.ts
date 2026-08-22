@@ -23,6 +23,10 @@ export const openApiDocument: OpenAPIV3.Document = {
       description: 'Service health endpoints',
     },
     {
+      name: 'Users',
+      description: 'User operations',
+    },
+    {
       name: 'Trips',
       description: 'Trip operations',
     },
@@ -107,6 +111,111 @@ export const openApiDocument: OpenAPIV3.Document = {
         },
       },
 
+      TripResponse: {
+        type: 'object',
+        required: [
+          'id',
+          'userId',
+          'name',
+          'destination',
+          'startDate',
+          'endDate',
+          'createdAt',
+          'updatedAt',
+        ],
+        properties: {
+          id: {
+            type: 'string',
+            format: 'uuid',
+          },
+          userId: {
+            type: 'string',
+            format: 'uuid',
+          },
+          name: {
+            type: 'string',
+            example: 'Istanbul Trip',
+          },
+          destination: {
+            type: 'string',
+            nullable: true,
+            example: 'Istanbul',
+          },
+          startDate: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: '2026-09-01T00:00:00.000Z',
+          },
+          endDate: {
+            type: 'string',
+            format: 'date-time',
+            nullable: true,
+            example: '2026-09-05T00:00:00.000Z',
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+          updatedAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+        },
+      },
+
+      TripListResponse: {
+        type: 'object',
+        required: ['data'],
+        properties: {
+          data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/TripResponse',
+            },
+          },
+        },
+      },
+
+      BagListResponse: {
+        type: 'object',
+        required: ['data'],
+        properties: {
+          data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/BagResponse',
+            },
+          },
+        },
+      },
+
+      ItemListResponse: {
+        type: 'object',
+        required: ['data'],
+        properties: {
+          data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/Item',
+            },
+          },
+        },
+      },
+
+      BagItemListResponse: {
+        type: 'object',
+        required: ['data'],
+        properties: {
+          data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/BagItemResponse',
+            },
+          },
+        },
+      },
+
       CreateBagRequest: {
         type: 'object',
         required: ['name'],
@@ -182,6 +291,54 @@ export const openApiDocument: OpenAPIV3.Document = {
           updatedAt: {
             type: 'string',
             format: 'date-time',
+          },
+        },
+      },
+
+      UserResponse: {
+        type: 'object',
+        required: [
+          'id',
+          'email',
+          'name',
+          'createdAt',
+          'updatedAt',
+        ],
+        properties: {
+          id: {
+            type: 'string',
+            format: 'uuid',
+          },
+          email: {
+            type: 'string',
+            format: 'email',
+            example: 'demo@valizu.local',
+          },
+          name: {
+            type: 'string',
+            nullable: true,
+            example: 'Demo User',
+          },
+          createdAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+          updatedAt: {
+            type: 'string',
+            format: 'date-time',
+          },
+        },
+      },
+
+      UserListResponse: {
+        type: 'object',
+        required: ['data'],
+        properties: {
+          data: {
+            type: 'array',
+            items: {
+              $ref: '#/components/schemas/UserResponse',
+            },
           },
         },
       },
@@ -435,7 +592,223 @@ export const openApiDocument: OpenAPIV3.Document = {
       },
     },
 
+    '/users': {
+      get: {
+        tags: ['Users'],
+        summary: 'List users',
+        description:
+          'Returns the users available in the case-study dataset.',
+        operationId: 'listUsers',
+        responses: {
+          '200': {
+            description: 'Users returned successfully.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/UserListResponse',
+                },
+              },
+            },
+          },
+
+         '500': {
+            description: 'Unexpected server error.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+    '/trips': {
+      get: {
+        tags: ['Trips'],
+        summary: 'List trips',
+        description:
+          'Returns all trips belonging to the authenticated user.',
+        operationId: 'listTrips',
+
+        security: [
+          {
+            UserId: [],
+          },
+        ],
+
+        responses: {
+          '200': {
+            description: 'Trips returned successfully.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/TripListResponse',
+                },
+              },
+            },
+          },
+
+          '401': {
+            description: 'Authentication required.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+                example: {
+                  error: 'UNAUTHENTICATED',
+                  message: 'User authentication is required',
+                },
+              },
+            },
+          },
+
+          '500': {
+            description: 'Unexpected server error.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    '/items': {
+      get: {
+        tags: ['Items'],
+        summary: 'List items',
+        description:
+          'Returns all items belonging to the authenticated user.',
+        operationId: 'listItems',
+
+        security: [
+          {
+            UserId: [],
+          },
+        ],
+
+        responses: {
+          '200': {
+            description: 'Items returned successfully.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ItemListResponse',
+                },
+              },
+            },
+          },
+
+          '401': {
+            description: 'Authentication required.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+                example: {
+                  error: 'UNAUTHENTICATED',
+                  message: 'User authentication is required',
+                },
+              },
+            },
+          },
+
+          '500': {
+            description: 'Unexpected server error.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
     '/trips/{tripId}/bags': {
+      get: {
+        tags: ['Bags'],
+        summary: 'List bags in a trip',
+        description:
+          'Returns all bags belonging to the specified trip. The trip must belong to the authenticated user.',
+        operationId: 'listBags',
+
+        security: [
+          {
+            UserId: [],
+          },
+        ],
+
+        parameters: [
+          {
+            $ref: '#/components/parameters/TripId',
+          },
+        ],
+
+        responses: {
+          '200': {
+            description: 'Bags returned successfully.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/BagListResponse',
+                },
+              },
+            },
+          },
+
+          '401': {
+            description: 'Authentication required.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+                example: {
+                  error: 'UNAUTHENTICATED',
+                  message: 'User authentication is required',
+                },
+              },
+            },
+          },
+
+          '404': {
+            description:
+              'The requested trip does not exist for the authenticated user.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+                example: {
+                  error: 'TRIP_NOT_FOUND',
+                  message: 'Trip not found',
+                },
+              },
+            },
+          },
+
+          '500': {
+            description: 'Unexpected server error.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
       post: {
         tags: ['Bags'],
         summary: 'Create a bag',
@@ -634,6 +1007,80 @@ export const openApiDocument: OpenAPIV3.Document = {
     },
 
     '/bags/{bagId}/items': {
+      get: {
+        tags: ['Items'],
+        summary: 'List items in a bag',
+        description:
+          'Returns all items currently contained in the specified bag. The bag must belong to a trip owned by the authenticated user.',
+        operationId: 'listBagItems',
+
+        security: [
+          {
+            UserId: [],
+          },
+        ],
+
+        parameters: [
+          {
+            $ref: '#/components/parameters/BagId',
+          },
+        ],
+
+        responses: {
+          '200': {
+            description: 'Bag items returned successfully.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/BagItemListResponse',
+                },
+              },
+            },
+          },
+
+          '401': {
+            description: 'Authentication required.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+                example: {
+                  error: 'UNAUTHENTICATED',
+                  message: 'User authentication is required',
+                },
+              },
+            },
+          },
+
+          '404': {
+            description:
+              'The requested bag does not exist for the authenticated user.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+                example: {
+                  error: 'BAG_NOT_FOUND',
+                  message: 'Bag not found',
+                },
+              },
+            },
+          },
+
+          '500': {
+            description: 'Unexpected server error.',
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: '#/components/schemas/ErrorResponse',
+                },
+              },
+            },
+          },
+        },
+      },
       post: {
         tags: ['Items'],
         summary: 'Add an item to a bag',

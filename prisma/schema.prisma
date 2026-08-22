@@ -30,6 +30,7 @@ model User {
   trips           Trip[]
   items           Item[]
   idempotencyKeys IdempotencyKey[]
+  @@map("users")
 }
 
 model Trip {
@@ -46,6 +47,7 @@ model Trip {
   bags Bag[]
 
   @@index([userId])
+  @@map("trips")
 }
 
 model Bag {
@@ -59,6 +61,7 @@ model Bag {
   items BagItem[]
 
   @@index([tripId])
+  @@map("bags")
 }
 
 model Item {
@@ -73,6 +76,7 @@ model Item {
   bagItems BagItem[]
 
   @@index([userId])
+  @@map("items")
 }
 
 model BagItem {
@@ -88,6 +92,7 @@ model BagItem {
 
   @@unique([bagId, itemId])
   @@index([itemId])
+  @@map("bag_items")
 }
 
 model IdempotencyKey {
@@ -106,4 +111,5 @@ model IdempotencyKey {
 
   @@unique([userId, operation, key])
   @@index([userId, operation])
+  @@map("idempotency_keys")
 }

@@ -1,32 +1,5 @@
 services:
   ############################################################
-  # PostgreSQL
-  ############################################################
-  postgres:
-    image: postgres:17-alpine
-    container_name: valizu-postgres
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
-        ]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-    restart: unless-stopped
-    networks:
-      - valizu
-    ports:
-      - "5433:5432"
-
-  ############################################################
   # Node / Express API
   ############################################################
   api:
@@ -63,6 +36,33 @@ services:
       - valizu
     ports:
       - "8081:80"
+
+  ############################################################
+  # PostgreSQL
+  ############################################################
+  postgres:
+    image: postgres:17-alpine
+    container_name: valizu-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+    networks:
+      - valizu
+    ports:
+      - "5433:5432"
 
 ############################################################
 # Networks

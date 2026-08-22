@@ -2,9 +2,27 @@ import { Router } from 'express';
 import { getRouteParam } from '../../lib/route.params.js';
 import { requireUser, type AuthenticatedRequest } from '../../middleware/auth.js';
 import { AppError } from '../../middleware/error.handler.js';
-import { copyTrip } from './trip.service.js';
+import { listTrips, copyTrip } from './trip.service.js';
 
 export const tripRouter = Router();
+
+tripRouter.get(
+  '/trips',
+  requireUser,
+  async (req, res, next) => {
+    try {
+      const trips = await listTrips(
+        (req as AuthenticatedRequest).userId,
+      );
+
+      res.json({
+        data: trips,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 tripRouter.post(
   '/trips/:tripId/copy',

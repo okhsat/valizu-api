@@ -2,9 +2,33 @@ import { Router } from 'express';
 import { getRouteParam } from '../../lib/route.params.js';
 import { requireUser, type AuthenticatedRequest } from '../../middleware/auth.js';
 import { createBagSchema, updateBagSchema } from './bag.schemas.js';
-import { createBag, updateBag } from './bag.service.js';
+import { listBags, createBag, updateBag } from './bag.service.js';
 
 export const bagRouter = Router();
+
+bagRouter.get(
+  '/trips/:tripId/bags',
+  requireUser,
+  async (req, res, next) => {
+    try {
+      const tripId = getRouteParam(
+        req.params.tripId,
+        'tripId',
+      );
+
+      const bags = await listBags(
+        (req as AuthenticatedRequest).userId,
+        tripId,
+      );
+
+      res.json({
+        data: bags,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 bagRouter.post(
   '/trips/:tripId/bags',
