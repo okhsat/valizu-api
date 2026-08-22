@@ -336,3 +336,25 @@ EOF
 > pnpm test -- --reporter=verbose
 > rm -f tests/trips/copy.trip.test.js
 > find tests -type f -maxdepth 5 -print
+> pnpm add openapi-types
+> grep -RniE "swagger|openApiDocument|swagger-ui" src package.json
+> pnpm dev
+> pnpm build
+> pnpm start
+> sudo ss -ltnp | grep ':3000' || true
+> sudo fuser -v 3000/tcp
+> curl -i http://localhost:3000/openapi.json
+> curl -s http://localhost:3000/openapi.json | head -c 500
+> curl -I http://localhost:3000/docs
+> curl -v --max-time 3 http://127.0.0.1:3000/health
+> docker compose down
+> docker compose up -d
+> docker exec valizu-api node -e "fetch('http://127.0.0.1:3000/health').then(async r => console.log(r.status, await r.text())).catch(console.error)"
+> docker exec valizu-api node -e "fetch('http://127.0.0.1:3000/openapi.json').then(async r => console.log(r.status, (await r.text()).slice(0,500))).catch(console.error)"
+> docker exec valizu-api node -e "fetch('http://127.0.0.1:3000/docs/').then(async r => console.log(r.status, (await r.text()).slice(0,300))).catch(console.error)"
+> docker exec valizu-nginx nginx -T
+> docker logs valizu-nginx --tail 100
+> docker compose build --no-cache api
+> docker compose up -d
+> curl -i http://127.0.0.1:8081/health
+> 

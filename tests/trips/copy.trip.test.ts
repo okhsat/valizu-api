@@ -158,13 +158,16 @@ describe('copyTrip idempotency', () => {
       code: 'IDEMPOTENCY_KEY_REUSED',
     });
 
-    const trips = await prisma.trip.findMany({
+    const copiedTrips = await prisma.trip.findMany({
       where: {
         userId,
+        id: {
+          not: sourceTripId,
+        },
       },
     });
 
-    expect(trips).toHaveLength(3);
+    expect(copiedTrips).toHaveLength(2);
   });
 
   it('does not consume the idempotency key when the copy fails', async () => {

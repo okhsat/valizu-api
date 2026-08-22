@@ -1,10 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
 import { bagRouter } from './modules/bags/bag.routes.js';
 import { itemRouter } from './modules/items/item.routes.js';
 import { tripRouter } from './modules/trips/trip.routes.js';
 import { errorHandler } from './middleware/error.handler.js';
+import { openApiDocument } from './openapi.js';
 
 const app = express();
 
@@ -17,6 +19,16 @@ app.get('/health', (_req, res) => {
     status: 'ok',
   });
 });
+
+app.get('/openapi.json', (_req, res) => {
+  res.json(openApiDocument);
+});
+
+app.use(
+  '/docs',
+  swaggerUi.serve,
+  swaggerUi.setup(openApiDocument),
+);
 
 app.use(bagRouter);
 app.use(itemRouter);
