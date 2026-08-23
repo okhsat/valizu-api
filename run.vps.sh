@@ -4,7 +4,7 @@ set -euo pipefail
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 
-DOMAIN="${DOMAIN:-api.valizu.turandevelop.com}"
+DOMAIN="${DOMAIN:-api-valizu.turandevelop.com}"
 LETSENCRYPT_EMAIL="${LETSENCRYPT_EMAIL:-}"
 CERTBOT_DIR="${PROJECT_DIR}/nginx/certbot"
 CERT_DIR="${CERTBOT_DIR}/conf/live/${DOMAIN}"
