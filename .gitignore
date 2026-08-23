@@ -20,4 +20,8 @@ generated/
 
 postman/postman
 
-nginx/certbot/
+# Let's Encrypt
+nginx/certbot/conf/*
+nginx/certbot/www/*
+!nginx/certbot/conf/.gitkeep
+!nginx/certbot/www/.gitkeep

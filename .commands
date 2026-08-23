@@ -357,6 +357,14 @@ EOF
 > docker compose build --no-cache api
 > docker compose up -d
 > curl -i http://127.0.0.1:8081/health
+> touch nginx/certbot/conf/.gitkeep
+> touch nginx/certbot/www/.gitkeep
+> bash -n run.vps.sh
+> docker compose \
+  -f docker-compose.yml \
+  -f docker-compose.vps.yml \
+  config >/dev/null
+> git diff --check
 
 ###### VPS #######
 > sudo mkdir -p /var/www/percon/valizu-api
@@ -371,5 +379,11 @@ EOF
 > curl -i -H 'Host: api.valizu.turandevelop.com' http://127.0.0.1/docs/
 > dig +short api.valizu.turandevelop.com
 > curl -I http://api.valizu.turandevelop.com/docs/
-> echo "valizu-acme-test" > nginx/certbot/www/test.txt
+> cd /var/www/percon/valizu-api
+> mkdir -p nginx/certbot/www/.well-known/acme-challenge
+> echo "valizu-acme-test" \
+  > nginx/certbot/www/.well-known/acme-challenge/test.txt
+> sudo docker exec valizu-nginx \
+  ls -l /var/www/certbot/.well-known/acme-challenge/
 > curl http://api.valizu.turandevelop.com/.well-known/acme-challenge/test.txt
+> LETSENCRYPT_EMAIL=admin@turandevelop.com ./run.vps.sh
