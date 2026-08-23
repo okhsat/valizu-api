@@ -1,8 +1,11 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { Prisma } from '../../generated/prisma/client.js';
 import { prisma } from '../../lib/prisma.js';
 import { AppError } from '../../middleware/error.handler.js';
-import { copyTripResultSchema, CopyTripResult } from './trip.schemas.js';
+import {
+  copyTripResultSchema,
+  CopyTripResult,
+} from './trip.schemas.js';
 
 const COPY_TRIP_OPERATION = 'COPY_TRIP' as const;
 
@@ -27,7 +30,6 @@ export async function copyTrip(
   userId: string,
   sourceTripId: string,
   idempotencyKey: string,
-
 ) {
   const requestHash = createRequestHash(sourceTripId);
 
@@ -86,11 +88,6 @@ export async function copyTrip(
         );
       }
 
-      /*
-       * Everything below is part of the same transaction.
-       * If any operation fails, the copied trip, bags, items
-       * and idempotency record are all rolled back.
-       */
       const copiedTrip = await tx.trip.create({
         data: {
           userId,
@@ -101,40 +98,34 @@ export async function copyTrip(
         },
       });
 
-      const copiedBags: Array<{
-        id: string;
-        name: string;
-        items: Array<{
-          itemId: string;
-          quantity: number;
-        }>;
-      }> = [];
+      /*
+       * Generate IDs in application memory so the IDs are known
+       * before bulk-inserting dependent BagItem records.
+       */
+      const bagCreates = sourceTrip.bags.map((sourceBag) => ({
+        id: randomUUID(),
+        tripId: copiedTrip.id,
+        name: sourceBag.name,
+      }));
 
-      for ( const sourceBag of sourceTrip.bags ) {
-        const copiedBag = await tx.bag.create({
-          data: {
-            tripId: copiedTrip.id,
-            name: sourceBag.name,
-          },
+      if ( bagCreates.length > 0 ) {
+        await tx.bag.createMany({
+          data: bagCreates,
         });
+      }
 
-        if ( sourceBag.items.length > 0 ) {
-          await tx.bagItem.createMany({
-            data: sourceBag.items.map((sourceBagItem) => ({
-              bagId: copiedBag.id,
-              itemId: sourceBagItem.itemId,
-              quantity: sourceBagItem.quantity,
-            })),
-          });
-        }
-
-        copiedBags.push({
-          id: copiedBag.id,
-          name: copiedBag.name,
-          items: sourceBag.items.map((sourceBagItem) => ({
+      const bagItemCreates = sourceTrip.bags.flatMap(
+        (sourceBag, index) =>
+          sourceBag.items.map((sourceBagItem) => ({
+            bagId: bagCreates[index]!.id,
             itemId: sourceBagItem.itemId,
             quantity: sourceBagItem.quantity,
           })),
+      );
+
+      if ( bagItemCreates.length > 0 ) {
+        await tx.bagItem.createMany({
+          data: bagItemCreates,
         });
       }
 
@@ -142,15 +133,22 @@ export async function copyTrip(
         id: copiedTrip.id,
         name: copiedTrip.name,
         destination: copiedTrip.destination,
-        startDate: copiedTrip.startDate?.toISOString() ?? null,
-        endDate: copiedTrip.endDate?.toISOString() ?? null,
-        bags: copiedBags,
+        startDate:
+          copiedTrip.startDate?.toISOString() ?? null,
+        endDate:
+          copiedTrip.endDate?.toISOString() ?? null,
+        bags: bagCreates.map((bag, index) => ({
+          id: bag.id,
+          name: bag.name,
+          items: sourceTrip.bags[index]!.items.map(
+            (sourceBagItem) => ({
+              itemId: sourceBagItem.itemId,
+              quantity: sourceBagItem.quantity,
+            }),
+          ),
+        })),
       };
 
-      /*
-       * Store the exact response so a retry can return the
-       * original successful result rather than creating anything.
-       */
       await tx.idempotencyKey.update({
         where: {
           id: idempotency.id,
@@ -166,13 +164,6 @@ export async function copyTrip(
     });
 
   } catch (error) {
-    /*
-     * A concurrent request using the same:
-     *
-     *   userId + operation + idempotencyKey
-     *
-     * may lose the database unique constraint.
-     */
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === 'P2002'
@@ -187,19 +178,11 @@ export async function copyTrip(
         },
       });
 
-      /*
-       * This should be extremely unusual, but don't silently
-       * convert an unrelated uniqueness error into an idempotency
-       * response.
-       */
       if ( ! existing ) {
         throw error;
       }
 
-      /*
-       * The same key must represent the same logical request.
-       */
-      if ( existing.requestHash !== requestHash ) {
+      if (existing.requestHash !== requestHash) {
         throw new AppError(
           409,
           'IDEMPOTENCY_KEY_REUSED',
@@ -207,23 +190,15 @@ export async function copyTrip(
         );
       }
 
-      /*
-       * Because the idempotency record is created and completed
-       * inside the same transaction as the copy, a committed
-       * record represents a completed operation.
-       */
       if (
         existing.status === 'COMPLETED' &&
         existing.responseBody
       ) {
-        return copyTripResultSchema.parse(existing.responseBody);
+        return copyTripResultSchema.parse(
+          existing.responseBody,
+        );
       }
 
-      /*
-       * Defensive fallback. With the current transaction design,
-       * an observable committed non-completed record should not
-       * normally occur.
-       */
       throw new AppError(
         409,
         'IDEMPOTENCY_REQUEST_IN_PROGRESS',
