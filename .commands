@@ -365,3 +365,6 @@ EOF
 > git clone git@github.com:okhsat/percon-valizu-api.git .
 > chmod +x run.vps.sh
 > ./run.vps.sh
+> sudo docker compose -f docker-compose.yml -f docker-compose.vps.yml ps
+> curl -i http://127.0.0.1
+> curl -i -H 'Host: api.valizu.turandevelop.com' http://127.0.0.1/health
