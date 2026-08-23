@@ -368,3 +368,8 @@ EOF
 > sudo docker compose -f docker-compose.yml -f docker-compose.vps.yml ps
 > curl -i http://127.0.0.1
 > curl -i -H 'Host: api.valizu.turandevelop.com' http://127.0.0.1/health
+> curl -i -H 'Host: api.valizu.turandevelop.com' http://127.0.0.1/docs/
+> dig +short api.valizu.turandevelop.com
+> curl -I http://api.valizu.turandevelop.com/docs/
+> echo "valizu-acme-test" > nginx/certbot/www/test.txt
+> curl http://api.valizu.turandevelop.com/.well-known/acme-challenge/test.txt
