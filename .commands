@@ -357,4 +357,11 @@ EOF
 > docker compose build --no-cache api
 > docker compose up -d
 > curl -i http://127.0.0.1:8081/health
-> 
+
+###### VPS #######
+> sudo mkdir -p /var/www/percon/valizu-api
+> sudo chown -R okhtay:okhtay /var/www/percon
+> cd /var/www/percon/valizu-api
+> git clone git@github.com:okhsat/percon-valizu-api.git .
+> chmod +x run.vps.sh
+> ./run.vps.sh
