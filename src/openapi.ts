@@ -6,8 +6,7 @@ export const openApiDocument: OpenAPIV3.Document = {
   info: {
     title: 'Valizu Backend API',
     version: '1.0.0',
-    description:
-      'Valizu backend case study API for Percon Bilişim Çözümleri ve Danışmanlık.',
+    description: 'Valizu backend case study API',
   },
 
   servers: [

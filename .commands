@@ -1,4 +1,4 @@
-> cd /var/www/percon
+> cd /var/www/{case}
 > mkdir valizu-backend
 > cd valizu-backend
 > git init
@@ -10,7 +10,7 @@
 > which pnpm
 > corepack pnpm --version
 > pnpm init
-> cd /var/www/percon/valizu-backend
+> cd /var/www/{case}/valizu-backend
 > cat package.json
 > corepack use pnpm@11.22.0
 > pnpm --version
@@ -367,10 +367,10 @@ EOF
 > git diff --check
 
 ###### VPS #######
-> sudo mkdir -p /var/www/percon/valizu-api
-> sudo chown -R okhtay:okhtay /var/www/percon
-> cd /var/www/percon/valizu-api
-> git clone git@github.com:okhsat/percon-valizu-api.git .
+> sudo mkdir -p /var/www/{case}/valizu-api
+> sudo chown -R okhtay:okhtay /var/www/{case}
+> cd /var/www/{case}/valizu-api
+> git clone git@github.com:okhsat/{case}-valizu-api.git .
 > chmod +x run.vps.sh
 > ./run.vps.sh
 > sudo docker compose -f docker-compose.yml -f docker-compose.vps.yml ps
@@ -379,7 +379,7 @@ EOF
 > curl -i -H 'Host: api-valizu.turandevelop.com' http://127.0.0.1/docs/
 > dig +short api-valizu.turandevelop.com
 > curl -I http://api-valizu.turandevelop.com/docs/
-> cd /var/www/percon/valizu-api
+> cd /var/www/{case}/valizu-api
 > mkdir -p nginx/certbot/www/.well-known/acme-challenge
 > echo "valizu-acme-test" \
   > nginx/certbot/www/.well-known/acme-challenge/test.txt

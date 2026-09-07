@@ -1,6 +1,6 @@
 # Valizu Backend API
 
-Backend implementation for the Percon Bilişim Çözümleri ve Danışmanlık backend case study.
+Backend implementation for a backend case study.
 
 The project implements a RESTful API for managing users, trips, bags, and items, with particular attention to data integrity, transaction boundaries, validation, ownership, idempotency, and concurrent requests.
 
@@ -741,6 +741,4 @@ Okhtay Sattari
 
 Software Developer & Architect
 
-Backend Case Study for:
-
-Percon Bilişim Çözümleri ve Danışmanlık
+Backend Case Study
